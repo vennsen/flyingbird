@@ -1,11 +1,28 @@
 import pygame
 import random
+import os
+
+ASSET_DIR = os.path.join(os.path.dirname(__file__), 'assets')
+
+# Initialize Pygame temporarily to load images and get their dimensions
+pygame.init()
+
+# Load bird image to get its dimensions for constants
+_BIRD_IMG_TEMP = pygame.image.load(os.path.join(ASSET_DIR, "bird.png"))
+BIRD_WIDTH = _BIRD_IMG_TEMP.get_width()
+BIRD_HEIGHT = _BIRD_IMG_TEMP.get_height()
+del _BIRD_IMG_TEMP # Free memory
+
+# Load pipe image to get its width for the constant
+_PIPE_IMG_TEMP = pygame.image.load(os.path.join(ASSET_DIR, "pipe.jpg"))
+PIPE_WIDTH = _PIPE_IMG_TEMP.get_width()
+del _PIPE_IMG_TEMP # Free memory
+
+pygame.quit() # Quit the temporary Pygame instance
 
 WIDTH, HEIGHT = 288, 512
 BIRD_X = 50
-BIRD_WIDTH = 34
-BIRD_HEIGHT = 24
-PIPE_WIDTH = 52
+# BIRD_WIDTH, BIRD_HEIGHT, and PIPE_WIDTH are now set dynamically above
 GAP_SIZE = 100
 GRAVITY = 0.25
 JUMP_STRENGTH = -4.5
@@ -14,7 +31,8 @@ class Bird:
     def __init__(self):
         self.y = HEIGHT // 2
         self.vel = 0
-        self.rect = pygame.Rect(BIRD_X, self.y, BIRD_WIDTH, BIRD_HEIGHT)
+        self.image = pygame.image.load(os.path.join(ASSET_DIR, "bird.png")).convert_alpha()
+        self.rect = self.image.get_rect(centerx=BIRD_X, centery=self.y)
 
     def update(self):
         self.vel += GRAVITY
@@ -26,6 +44,9 @@ class Bird:
 
 class Pipe:
     def __init__(self):
+        self.pipe_surface = pygame.image.load(os.path.join(ASSET_DIR, "pipe.jpg")).convert()
+        self.bottom_pipe_image = self.pipe_surface
+        self.top_pipe_image = pygame.transform.flip(self.pipe_surface, False, True)
         self.x = WIDTH
         top_height = random.randint(50, HEIGHT - GAP_SIZE - 50)
         bottom_height = HEIGHT - top_height - GAP_SIZE
@@ -85,9 +106,9 @@ def main():
 
         screen.fill((135, 206, 235))  # sky blue
         for pipe in pipes:
-            pygame.draw.rect(screen, (0, 255, 0), pipe.top_rect)
-            pygame.draw.rect(screen, (0, 255, 0), pipe.bottom_rect)
-        pygame.draw.rect(screen, (255, 255, 0), bird.rect)
+            screen.blit(pipe.top_pipe_image, pipe.top_rect)
+            screen.blit(pipe.bottom_pipe_image, pipe.bottom_rect)
+        screen.blit(bird.image, bird.rect)
 
         score_surf = font.render(f"Score: {score//30}", True, (255, 255, 255))
         screen.blit(score_surf, (10, 10))
