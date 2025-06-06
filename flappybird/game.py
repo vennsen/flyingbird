@@ -10,9 +10,8 @@ def load_cropped_image(path, scale=None):
     image = pygame.image.load(path).convert_alpha()
     if scale is not None:
         image = pygame.transform.scale(image, scale)
-    # Create a mask to find the non transparent area
-    mask = pygame.mask.from_surface(image)
-    rect = mask.get_bounding_rect()
+    # Use the surface's alpha channel to find the non transparent area
+    rect = image.get_bounding_rect()
     cropped = image.subsurface(rect).copy()
     return cropped
 
