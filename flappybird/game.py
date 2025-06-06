@@ -2,27 +2,13 @@ import pygame
 import random
 import os
 
-ASSET_DIR = os.path.join(os.path.dirname(__file__), 'assets')
-
-# Initialize Pygame temporarily to load images and get their dimensions
-pygame.init()
-
-# Load bird image to get its dimensions for constants
-_BIRD_IMG_TEMP = pygame.image.load(os.path.join(ASSET_DIR, "bird.png"))
-BIRD_WIDTH = _BIRD_IMG_TEMP.get_width()
-BIRD_HEIGHT = _BIRD_IMG_TEMP.get_height()
-del _BIRD_IMG_TEMP # Free memory
-
-# Load pipe image to get its width for the constant
-_PIPE_IMG_TEMP = pygame.image.load(os.path.join(ASSET_DIR, "pipe.jpg"))
-PIPE_WIDTH = _PIPE_IMG_TEMP.get_width()
-del _PIPE_IMG_TEMP # Free memory
-
-pygame.quit() # Quit the temporary Pygame instance
+ASSET_DIR = os.path.join(os.path.dirname(__file__), "assets")
 
 WIDTH, HEIGHT = 288, 512
 BIRD_X = 50
-# BIRD_WIDTH, BIRD_HEIGHT, and PIPE_WIDTH are now set dynamically above
+BIRD_WIDTH = 34
+BIRD_HEIGHT = 24
+PIPE_WIDTH = 52
 GAP_SIZE = 100
 GRAVITY = 0.25
 JUMP_STRENGTH = -4.5
@@ -31,7 +17,10 @@ class Bird:
     def __init__(self):
         self.y = HEIGHT // 2
         self.vel = 0
-        self.image = pygame.image.load(os.path.join(ASSET_DIR, "bird.png")).convert_alpha()
+        self.image = pygame.image.load(
+            os.path.join(ASSET_DIR, "bird.png")
+        ).convert_alpha()
+        self.image = pygame.transform.scale(self.image, (BIRD_WIDTH, BIRD_HEIGHT))
         self.rect = self.image.get_rect(centerx=BIRD_X, centery=self.y)
 
     def update(self):
@@ -44,14 +33,23 @@ class Bird:
 
 class Pipe:
     def __init__(self):
-        self.pipe_surface = pygame.image.load(os.path.join(ASSET_DIR, "pipe.jpg")).convert()
-        self.bottom_pipe_image = self.pipe_surface
-        self.top_pipe_image = pygame.transform.flip(self.pipe_surface, False, True)
         self.x = WIDTH
         top_height = random.randint(50, HEIGHT - GAP_SIZE - 50)
         bottom_height = HEIGHT - top_height - GAP_SIZE
-        self.top_rect = pygame.Rect(self.x, 0, PIPE_WIDTH, top_height)
-        self.bottom_rect = pygame.Rect(self.x, HEIGHT - bottom_height, PIPE_WIDTH, bottom_height)
+
+        pipe_surface = pygame.image.load(
+            os.path.join(ASSET_DIR, "pipe.jpg")
+        ).convert()
+        self.bottom_pipe_image = pygame.transform.scale(
+            pipe_surface, (PIPE_WIDTH, bottom_height)
+        )
+        self.top_pipe_image = pygame.transform.flip(
+            pygame.transform.scale(pipe_surface, (PIPE_WIDTH, top_height)), False, True
+        )
+        self.top_rect = self.top_pipe_image.get_rect(topleft=(self.x, 0))
+        self.bottom_rect = self.bottom_pipe_image.get_rect(
+            topleft=(self.x, HEIGHT - bottom_height)
+        )
 
     def update(self):
         self.x -= 2
