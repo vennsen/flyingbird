@@ -6,13 +6,28 @@ ASSET_DIR = os.path.join(os.path.dirname(__file__), "assets")
 
 
 def load_cropped_image(path, scale=None):
-    """Load an image and crop out transparent borders."""
+    """Load an image and crop to the largest contour."""
     image = pygame.image.load(path).convert_alpha()
     if scale is not None:
         image = pygame.transform.scale(image, scale)
-    # Use the surface's alpha channel to find the non transparent area
-    rect = image.get_bounding_rect()
-    cropped = image.subsurface(rect).copy()
+
+    mask = pygame.mask.from_surface(image)
+    components = mask.connected_components()
+
+    if components:
+        largest = max(components, key=lambda m: m.count())
+        rect = largest.get_bounding_rects()[0]
+        cropped = image.subsurface(rect).copy()
+
+        mask_surface = largest.to_surface(
+            setcolor=(255, 255, 255, 255), unsetcolor=(0, 0, 0, 0)
+        )
+        mask_crop = mask_surface.subsurface(rect)
+        cropped.blit(mask_crop, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
+    else:
+        rect = image.get_bounding_rect()
+        cropped = image.subsurface(rect).copy()
+
     return cropped
 
 WIDTH, HEIGHT = 288, 512
