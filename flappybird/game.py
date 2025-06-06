@@ -1,18 +1,41 @@
 import pygame
 import random
 import os
+import cv2
+import numpy as np
 
 ASSET_DIR = os.path.join(os.path.dirname(__file__), "assets")
 
 
 def load_cropped_image(path, scale=None):
-    """Load an image and crop out transparent borders."""
+    """Load an image and crop to the largest contour using OpenCV."""
     image = pygame.image.load(path).convert_alpha()
     if scale is not None:
         image = pygame.transform.scale(image, scale)
-    # Use the surface's alpha channel to find the non transparent area
-    rect = image.get_bounding_rect()
-    cropped = image.subsurface(rect).copy()
+
+    # Extract alpha channel and find contours with OpenCV
+    alpha = pygame.surfarray.array_alpha(image)
+    alpha = np.transpose(alpha, (1, 0)).copy()
+    _, thresh = cv2.threshold(alpha, 0, 255, cv2.THRESH_BINARY)
+    contours, _ = cv2.findContours(
+        thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
+    )
+
+    if contours:
+        largest = max(contours, key=cv2.contourArea)
+        x, y, w, h = cv2.boundingRect(largest)
+        cropped = image.subsurface(pygame.Rect(x, y, w, h)).copy()
+
+        mask_full = np.zeros_like(alpha)
+        cv2.drawContours(mask_full, [largest], -1, 255, cv2.FILLED)
+        mask_crop = mask_full[y : y + h, x : x + w]
+
+        mask_surface = pygame.Surface((w, h), pygame.SRCALPHA)
+        pygame.surfarray.pixels_alpha(mask_surface)[:, :] = mask_crop.swapaxes(0, 1)
+        cropped.blit(mask_surface, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
+    else:
+        cropped = image
+
     return cropped
 
 WIDTH, HEIGHT = 288, 512
