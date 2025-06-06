@@ -1,13 +1,16 @@
 # Flying Bird
 
 This project provides a minimal Flappy Bird style game written in Python using
-Pygame. You can run it on desktop platforms and later package it as an Android
-APK using tools such as [Pygame Subset for Android](https://github.com/renpy/pygame_sdl2) or [Kivy's Buildozer](https://github.com/kivy/buildozer).
+Pygame. OpenCV is used for contour detection so sprites are cropped to their
+largest shapes automatically. You can run it on desktop platforms and later
+package it as an Android APK using tools such as
+[Pygame Subset for Android](https://github.com/renpy/pygame_sdl2) or
+[Kivy's Buildozer](https://github.com/kivy/buildozer).
 
 ## Running the Game
 
 1. Install Python 3.x.
-2. Install dependencies:
+2. Install dependencies (Pygame and OpenCV are required):
    ```bash
    pip install -r requirements.txt
    ```

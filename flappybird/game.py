@@ -1,34 +1,49 @@
 import pygame
 import random
 import os
+import cv2
 
 ASSET_DIR = os.path.join(os.path.dirname(__file__), "assets")
 
 
 def load_cropped_image(path, scale=None):
-    """Load an image and crop to the largest contour."""
-    image = pygame.image.load(path).convert_alpha()
+    """Load an image, detect contours with OpenCV and return the largest."""
+    img = cv2.imread(path, cv2.IMREAD_UNCHANGED)
+    if img is None:
+        raise FileNotFoundError(path)
+
     if scale is not None:
-        image = pygame.transform.scale(image, scale)
+        img = cv2.resize(img, scale, interpolation=cv2.INTER_AREA)
 
-    mask = pygame.mask.from_surface(image)
-    components = mask.connected_components()
+    if img.ndim == 2:
+        img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGRA)
+    elif img.shape[2] == 3:
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2BGRA)
 
-    if components:
-        largest = max(components, key=lambda m: m.count())
-        rect = largest.get_bounding_rects()[0]
-        cropped = image.subsurface(rect).copy()
+    b, g, r, a = cv2.split(img)
+    gray = cv2.cvtColor(cv2.merge((b, g, r)), cv2.COLOR_BGR2GRAY)
+    _, thresh = cv2.threshold(gray, 250, 255, cv2.THRESH_BINARY_INV)
 
-        mask_surface = largest.to_surface(
-            setcolor=(255, 255, 255, 255), unsetcolor=(0, 0, 0, 0)
-        )
-        mask_crop = mask_surface.subsurface(rect)
-        cropped.blit(mask_crop, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
+    contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+    if contours:
+        largest = max(contours, key=cv2.contourArea)
+        x, y, w, h = cv2.boundingRect(largest)
+        img = img[y : y + h, x : x + w]
+        thresh = thresh[y : y + h, x : x + w]
     else:
-        rect = image.get_bounding_rect()
-        cropped = image.subsurface(rect).copy()
+        h, w = img.shape[:2]
 
-    return cropped
+    # apply the mask to create transparency
+    if img.shape[2] == 4:
+        img[:, :, 3] = thresh
+    else:
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2BGRA)
+        img[:, :, 3] = thresh
+
+    img = cv2.cvtColor(img, cv2.COLOR_BGRA2RGBA)
+    surface = pygame.image.frombuffer(img.tobytes(), (img.shape[1], img.shape[0]), "RGBA")
+    return surface.convert_alpha()
 
 WIDTH, HEIGHT = 288, 512
 BIRD_X = 50
