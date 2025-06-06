@@ -4,6 +4,18 @@ import os
 
 ASSET_DIR = os.path.join(os.path.dirname(__file__), "assets")
 
+
+def load_cropped_image(path, scale=None):
+    """Load an image and crop out transparent borders."""
+    image = pygame.image.load(path).convert_alpha()
+    if scale is not None:
+        image = pygame.transform.scale(image, scale)
+    # Create a mask to find the non transparent area
+    mask = pygame.mask.from_surface(image)
+    rect = mask.get_bounding_rect()
+    cropped = image.subsurface(rect).copy()
+    return cropped
+
 WIDTH, HEIGHT = 288, 512
 BIRD_X = 50
 BIRD_WIDTH = 34
@@ -17,10 +29,11 @@ class Bird:
     def __init__(self):
         self.y = HEIGHT // 2
         self.vel = 0
-        self.image = pygame.image.load(
-            os.path.join(ASSET_DIR, "bird.png")
-        ).convert_alpha()
-        self.image = pygame.transform.scale(self.image, (BIRD_WIDTH, BIRD_HEIGHT))
+        self.image = load_cropped_image(
+            os.path.join(ASSET_DIR, "bird.png"),
+            scale=(BIRD_WIDTH, BIRD_HEIGHT),
+        )
+        self.mask = pygame.mask.from_surface(self.image)
         self.rect = self.image.get_rect(centerx=BIRD_X, centery=self.y)
 
     def update(self):
@@ -37,15 +50,16 @@ class Pipe:
         top_height = random.randint(50, HEIGHT - GAP_SIZE - 50)
         bottom_height = HEIGHT - top_height - GAP_SIZE
 
-        pipe_surface = pygame.image.load(
-            os.path.join(ASSET_DIR, "pipe.jpg")
-        ).convert()
+        pipe_surface = load_cropped_image(os.path.join(ASSET_DIR, "pipe.jpg"))
+
         self.bottom_pipe_image = pygame.transform.scale(
             pipe_surface, (PIPE_WIDTH, bottom_height)
         )
         self.top_pipe_image = pygame.transform.flip(
             pygame.transform.scale(pipe_surface, (PIPE_WIDTH, top_height)), False, True
         )
+        self.bottom_mask = pygame.mask.from_surface(self.bottom_pipe_image)
+        self.top_mask = pygame.mask.from_surface(self.top_pipe_image)
         self.top_rect = self.top_pipe_image.get_rect(topleft=(self.x, 0))
         self.bottom_rect = self.bottom_pipe_image.get_rect(
             topleft=(self.x, HEIGHT - bottom_height)
@@ -59,8 +73,16 @@ class Pipe:
     def off_screen(self):
         return self.x + PIPE_WIDTH < 0
 
-    def collide(self, bird_rect):
-        return self.top_rect.colliderect(bird_rect) or self.bottom_rect.colliderect(bird_rect)
+    def collide(self, bird):
+        if self.top_rect.colliderect(bird.rect):
+            offset = (bird.rect.left - self.top_rect.left, bird.rect.top - self.top_rect.top)
+            if self.top_mask.overlap(bird.mask, offset):
+                return True
+        if self.bottom_rect.colliderect(bird.rect):
+            offset = (bird.rect.left - self.bottom_rect.left, bird.rect.top - self.bottom_rect.top)
+            if self.bottom_mask.overlap(bird.mask, offset):
+                return True
+        return False
 
 
 def main():
@@ -96,7 +118,7 @@ def main():
                 pipe.update()
             pipes = [p for p in pipes if not p.off_screen()]
             for pipe in pipes:
-                if pipe.collide(bird.rect):
+                if pipe.collide(bird):
                     game_over = True
             if bird.rect.top <= 0 or bird.rect.bottom >= HEIGHT:
                 game_over = True
