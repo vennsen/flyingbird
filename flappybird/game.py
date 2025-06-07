@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 import pygame
 import random
 import os
@@ -37,7 +39,7 @@ BIRD_HEIGHT = 24
 PIPE_WIDTH = 52
 GAP_SIZE = 100
 GRAVITY = 0.25
-JUMP_STRENGTH = -4.5
+JUMP_STRENGTH = -4.8
 
 class Bird:
     def __init__(self):
@@ -61,34 +63,45 @@ class Bird:
 class Pipe:
     def __init__(self):
         self.x = WIDTH
+        self.top_rect, self.top_mask, self.top_pipe_image = None, None, None
+        self.bottom_rect, self.bottom_mask, self.bottom_pipe_image = None, None, None
         top_height = random.randint(50, HEIGHT - GAP_SIZE - 50)
         bottom_height = HEIGHT - top_height - GAP_SIZE
 
-        pipe_surface = load_cropped_image(os.path.join(ASSET_DIR, "pipe.jpg"))
+        object_list = ["pipe.png", "green_pipe.png", "red_pipe.png", "white_pipe.png", "lamp_post.png", "banyan_tree.png"]
+        object_choice = random.choice(object_list)
+        pipe_surface = load_cropped_image(os.path.join(ASSET_DIR, object_choice))
+
+        no_top_image = defaultdict(lambda : False)
+        no_top_image["banyan_tree.png"] = True
+        no_top_image["lamp_post.png"] = True
+
+        if not no_top_image[object_choice]:
+            self.top_pipe_image = pygame.transform.flip(
+                pygame.transform.scale(pipe_surface, (PIPE_WIDTH, top_height)), False, True
+            )
+            self.top_mask = pygame.mask.from_surface(self.top_pipe_image)
+            self.top_rect = self.top_pipe_image.get_rect(topleft=(self.x, 0))
 
         self.bottom_pipe_image = pygame.transform.scale(
             pipe_surface, (PIPE_WIDTH, bottom_height)
         )
-        self.top_pipe_image = pygame.transform.flip(
-            pygame.transform.scale(pipe_surface, (PIPE_WIDTH, top_height)), False, True
-        )
         self.bottom_mask = pygame.mask.from_surface(self.bottom_pipe_image)
-        self.top_mask = pygame.mask.from_surface(self.top_pipe_image)
-        self.top_rect = self.top_pipe_image.get_rect(topleft=(self.x, 0))
         self.bottom_rect = self.bottom_pipe_image.get_rect(
             topleft=(self.x, HEIGHT - bottom_height)
         )
 
     def update(self):
         self.x -= 2
-        self.top_rect.x = int(self.x)
+        if self.top_rect:
+            self.top_rect.x = int(self.x)
         self.bottom_rect.x = int(self.x)
 
     def off_screen(self):
         return self.x + PIPE_WIDTH < 0
 
     def collide(self, bird):
-        if self.top_rect.colliderect(bird.rect):
+        if self.top_pipe_image and self.top_rect.colliderect(bird.rect):
             offset = (bird.rect.left - self.top_rect.left, bird.rect.top - self.top_rect.top)
             if self.top_mask.overlap(bird.mask, offset):
                 return True
@@ -140,7 +153,8 @@ def main():
 
         screen.fill((135, 206, 235))  # sky blue
         for pipe in pipes:
-            screen.blit(pipe.top_pipe_image, pipe.top_rect)
+            if pipe.top_pipe_image:
+                screen.blit(pipe.top_pipe_image, pipe.top_rect)
             screen.blit(pipe.bottom_pipe_image, pipe.bottom_rect)
         screen.blit(bird.image, bird.rect)
 
