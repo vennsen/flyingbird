@@ -114,9 +114,17 @@ class Pipe:
 
 def main():
     pygame.init()
+    pygame.mixer.init()
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
     clock = pygame.time.Clock()
-    font = pygame.font.SysFont(None, 36)
+
+    # Fonts for score and messages
+    score_font = pygame.font.Font(pygame.font.match_font("arial", bold=True), 40)
+    message_font = pygame.font.Font(pygame.font.match_font("arial"), 28)
+
+    # Background music
+    pygame.mixer.music.load(os.path.join(ASSET_DIR, "bg_audio.mp3"))
+    pygame.mixer.music.play(-1)
 
     bg_image = pygame.image.load(os.path.join(ASSET_DIR, "bg_image.png")).convert()
     bg_image = pygame.transform.scale(bg_image, (WIDTH, HEIGHT))
@@ -161,11 +169,18 @@ def main():
             screen.blit(pipe.bottom_pipe_image, pipe.bottom_rect)
         screen.blit(bird.image, bird.rect)
 
-        score_surf = font.render(f"Score: {score//30}", True, (255, 255, 255))
-        screen.blit(score_surf, (10, 10))
+        # Stylish scoreboard
+        score_value = score // 30
+        score_text = score_font.render(f"Score: {score_value}", True, (255, 255, 255))
+        board = pygame.Surface((score_text.get_width() + 20, score_text.get_height() + 10), pygame.SRCALPHA)
+        board.fill((0, 0, 0, 150))
+        board.blit(score_text, (10, 5))
+        screen.blit(board, (WIDTH - board.get_width() - 10, 10))
 
         if game_over:
-            over_surf = font.render("Game Over! Press R to restart", True, (255, 0, 0))
+            if pygame.mixer.music.get_busy():
+                pygame.mixer.music.fadeout(500)
+            over_surf = message_font.render("Game Over! Press R to restart", True, (255, 0, 0))
             screen.blit(over_surf, (20, HEIGHT//2))
 
         pygame.display.flip()
