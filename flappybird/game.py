@@ -118,6 +118,9 @@ def main():
     clock = pygame.time.Clock()
     font = pygame.font.SysFont(None, 36)
 
+    bg_image = pygame.image.load(os.path.join(ASSET_DIR, "bg_image.png")).convert()
+    bg_image = pygame.transform.scale(bg_image, (WIDTH, HEIGHT))
+
     bird = Bird()
     pipes = []
     score = 0
@@ -151,7 +154,7 @@ def main():
                 game_over = True
             score += 1
 
-        screen.fill((135, 206, 235))  # sky blue
+        screen.blit(bg_image, (0, 0))
         for pipe in pipes:
             if pipe.top_pipe_image:
                 screen.blit(pipe.top_pipe_image, pipe.top_rect)
