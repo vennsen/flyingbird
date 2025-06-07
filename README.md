@@ -22,7 +22,9 @@ Press `SPACE` to jump. Avoid the pipes! Press `R` after a crash to restart.
 
 To convert this game into an Android APK you can use Kivy's Buildozer tool:
 
-1. Install buildozer and its dependencies.
+1. Install buildozer and its dependencies. If you are using Python 3.12 or
+   newer, run Buildozer via the included `buildozer_wrapper.py` script which
+   provides the deprecated `distutils` module from `setuptools`.
 2. Initialize a spec file:
    ```bash
    buildozer init
