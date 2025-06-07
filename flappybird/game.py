@@ -119,7 +119,7 @@ def main():
     clock = pygame.time.Clock()
 
     # Fonts for score and messages
-    score_font = pygame.font.Font(pygame.font.match_font("arial", bold=True), 40)
+    score_font = pygame.font.SysFont("arial", 18, italic=True)
     message_font = pygame.font.Font(pygame.font.match_font("arial"), 28)
 
     # Background music
@@ -169,13 +169,10 @@ def main():
             screen.blit(pipe.bottom_pipe_image, pipe.bottom_rect)
         screen.blit(bird.image, bird.rect)
 
-        # Stylish scoreboard
+        # Minimal transparent scoreboard
         score_value = score // 30
         score_text = score_font.render(f"Score: {score_value}", True, (255, 255, 255))
-        board = pygame.Surface((score_text.get_width() + 20, score_text.get_height() + 10), pygame.SRCALPHA)
-        board.fill((0, 0, 0, 150))
-        board.blit(score_text, (10, 5))
-        screen.blit(board, (WIDTH - board.get_width() - 10, 10))
+        screen.blit(score_text, (WIDTH - score_text.get_width() - 10, 10))
 
         if game_over:
             if pygame.mixer.music.get_busy():
