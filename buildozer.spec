@@ -37,7 +37,7 @@ version = 0.1.0
 
 # (list) Application requirements
 # comma separated e.g. requirements = python3,pygame
-requirements = python3,pygame
+requirements = python3,pygame==2.1.3
 
 # (str) Custom source folders for requirements
 # Sets custom source for any requirements with recipes
@@ -111,7 +111,7 @@ android.minapi = 24
 android.sdk = 33
 
 # (str) Android NDK version to use
-android.ndk = 23b
+android.ndk = 25b
 
 # (int) Android NDK API to use. This is the minimum API your app will support, it should usually match android.minapi.
 #android.ndk_api = 21

@@ -36,8 +36,10 @@ Below is a minimal workflow tested on Ubuntu Linux:
    ```
    Otherwise you can call `buildozer init` directly.
 3. Edit the generated `buildozer.spec` so that `requirements` contains
-   `pygame` and ensure `source.main` points to `main.py` (already done in this
-   repository).
+   `pygame==2.1.3` (newer versions try to build optional modules that fail
+   under cross compilation), ensure `source.main` points to `main.py`
+   (already done in this repository) and set `android.ndk` to `25b` so the
+   build uses a supported Android NDK.
 4. Build the APK:
    ```bash
    python buildozer_wrapper.py -v android debug
@@ -45,3 +47,9 @@ Below is a minimal workflow tested on Ubuntu Linux:
 
 The resulting APK will be placed in the `bin/` directory. Install it on your
 device via `adb install bin/*.apk` or through Android's file manager.
+
+### Building with GitHub Actions
+
+This repository includes a workflow that automatically builds an APK using [Buildozer](https://github.com/kivy/buildozer) when you push changes to the `main` branch or open a pull request. The generated APK is uploaded as a workflow artifact.
+
+To trigger the workflow manually, push your commits to GitHub and check the *Actions* tab. Once the build completes you can download the APK artifact from the workflow run page.

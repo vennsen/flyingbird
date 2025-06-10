@@ -1,1 +1,3 @@
-pygame>=2.0
+# Use Pygame 2.1.3 since newer releases try to build extra modules that fail
+# when cross compiling with python-for-android.
+pygame==2.1.3
