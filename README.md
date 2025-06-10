@@ -36,8 +36,9 @@ Below is a minimal workflow tested on Ubuntu Linux:
    ```
    Otherwise you can call `buildozer init` directly.
 3. Edit the generated `buildozer.spec` so that `requirements` contains
-   `pygame` and ensure `source.main` points to `main.py` (already done in this
-   repository).
+   `pygame`, ensure `source.main` points to `main.py` (already done in this
+   repository) and set `android.ndk` to `25b` so the build uses a supported
+   Android NDK.
 4. Build the APK:
    ```bash
    python buildozer_wrapper.py -v android debug
