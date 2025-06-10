@@ -45,3 +45,9 @@ Below is a minimal workflow tested on Ubuntu Linux:
 
 The resulting APK will be placed in the `bin/` directory. Install it on your
 device via `adb install bin/*.apk` or through Android's file manager.
+
+### Building with GitHub Actions
+
+This repository includes a workflow that automatically builds an APK using [Buildozer](https://github.com/kivy/buildozer) when you push changes to the `main` branch or open a pull request. The generated APK is uploaded as a workflow artifact.
+
+To trigger the workflow manually, push your commits to GitHub and check the *Actions* tab. Once the build completes you can download the APK artifact from the workflow run page.
