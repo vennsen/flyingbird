@@ -20,20 +20,28 @@ Press `SPACE` to jump. Avoid the pipes! Press `R` after a crash to restart.
 
 ## Packaging for Android
 
-To convert this game into an Android APK you can use Kivy's Buildozer tool:
+To convert this game into an Android APK you can use Kivy's Buildozer tool.
+Below is a minimal workflow tested on Ubuntu Linux:
 
-1. Install buildozer and its dependencies. If you are using Python 3.12 or
-   newer, run Buildozer via the included `buildozer_wrapper.py` script which
-   provides the deprecated `distutils` module from `setuptools`.
-2. Initialize a spec file:
+1. Install the required system packages:
    ```bash
-   buildozer init
+   sudo apt update
+   sudo apt install -y python3 python3-pip openjdk-17-jdk unzip git build-essential ccache libncurses5
+   pip3 install --user buildozer
    ```
-3. Edit the generated `buildozer.spec` to include `pygame` and your entry
-   point (`run_game.py`).
+2. If you are running Python 3.12 or newer execute Buildozer via the provided
+   wrapper to ensure the `distutils` module is available:
+   ```bash
+   python buildozer_wrapper.py init
+   ```
+   Otherwise you can call `buildozer init` directly.
+3. Edit the generated `buildozer.spec` so that `requirements` contains
+   `pygame` and ensure `source.main` points to `main.py` (already done in this
+   repository).
 4. Build the APK:
    ```bash
-   buildozer -v android debug
+   python buildozer_wrapper.py -v android debug
    ```
 
-For more details see the Buildozer documentation.
+The resulting APK will be placed in the `bin/` directory. Install it on your
+device via `adb install bin/*.apk` or through Android's file manager.
